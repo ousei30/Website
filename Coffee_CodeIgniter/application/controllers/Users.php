@@ -111,32 +111,37 @@
         }
         public function update()
         {
-        $this->form_validation->set_rules('username','Employee Number', 'trim|required');
-
-        if ($this->form_validation->run())
-        {
-            $id = $this->input->post('id'); // Get the ID of the user being updated
-
-            $data = array(
-                'username' => $this->input->post('username'),
-
-                'update'       => 'users',
-                'date_updated' => date('Y-m-d') // Update the date
-            );
-
-            $result = $this->Users_model->update($id, $data); // Call the update method
-
-            if($result)
-            {
-                $this->session->set_flashdata('success','Employee Successfully Updated!');
-                redirect(base_url('users/index'));
+            // Set validation rules
+            $this->form_validation->set_rules('username', 'Employee Number', 'trim|required');
+            $this->form_validation->set_rules('firstName', 'first name', 'trim|required');
+            $this->form_validation->set_rules('lastName', 'last name', 'trim|required');
+            $this->form_validation->set_rules('middleName', 'middle name', 'trim|required');
+        
+            if ($this->form_validation->run()) {
+                
+                $id = $this->input->post('id');
+            
+                $data = array(
+                    'username'      => $this->input->post('username'),
+                    'firstName'     => $this->input->post('firstName'),
+                    'middleName'    => $this->input->post('middleName'),
+                    'lastName'      => $this->input->post('lastName'),
+                    'update'        => 'users',
+                    'date_updated'  => date('Y-m-d') // Update the date
+                );
+            
+                $result = $this->Users_model->update($id, $data);
+            
+                if ($result) {
+                    $this->session->set_flashdata('success', 'Employee Successfully Updated!');
+                    redirect(base_url('users/index'));
+                } else {
+                    $this->session->set_flashdata('err', 'Employee Update Failed');
+                }
+            } else {
+                $this->session->set_flashdata('err', validation_errors());
+                redirect(base_url('users/edit/' . $this->input->post('id')));
             }
-            else
-            {
-                $this->session->set_flashdata('err', 'Employee Update Failed');
-            }
-        }
-
         }
         public function delete($id)
         {
