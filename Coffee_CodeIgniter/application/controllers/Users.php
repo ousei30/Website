@@ -7,21 +7,20 @@
             $this->load->model('Users_model');
             $this->load->model('Login_model');
             $this->load->model('Upload_model');
-            // if (!$this->session->userdata('username')) {
-            //     redirect(base_url('login/index')); // Redirect to login page
-            // }
+            $this->load->model('Orders_model');
         }
         public function profile()
         {
+            $data['orders'] = $this->Orders_model->rows1();
             if ($this->session->userdata('user_status') == 1) {
                 $this->load->view('template/header');
                 $this->load->view('template/nav');
-                $this->load->view('webpages/adminprofile');
+                $this->load->view('webpages/adminprofile',$data);
                 $this->load->view('template/footer');
             } else {
                 $this->load->view('template/header');
                 $this->load->view('template/nav');
-                $this->load->view('webpages/profile');
+                $this->load->view('webpages/profile',$data);
                 $this->load->view('template/footer');
             }
         }
@@ -143,6 +142,7 @@
                 redirect(base_url('users/edit/' . $this->input->post('id')));
             }
         }
+
         public function delete($id)
         {
             $data = array(
@@ -150,7 +150,9 @@
                 'deleted'       => 'deleted',
                 'date_deleted' => date('Y-m-d') // Update the date
             );
+
             $result = $this->Users_model->update($id, $data);
+            
             if($result)
             {
                 $this->session->set_flashdata('success','Employee Successfully Deleted!');
