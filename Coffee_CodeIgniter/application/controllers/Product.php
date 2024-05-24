@@ -88,35 +88,41 @@
         }
         public function update()
         {
-            $this->form_validation->set_rules('product_name','feedback', 'trim|required');
-            $this->form_validation->set_rules('product_description','feedback', 'trim|required');
-            $this->form_validation->set_rules('product_price','feedback', 'trim|required');
-
-            if ($this->form_validation->run())
-            {
-                $id = $this->input->post('id'); // Get the ID of the user being updated
-
+            $this->form_validation->set_rules('product_name', 'Product Name', 'trim|required');
+            $this->form_validation->set_rules('product_description', 'Product Description', 'trim|required');
+            $this->form_validation->set_rules('product_price', 'Product Price', 'trim|required');
+        
+            $id = $this->input->post('id');
+        
+            if ($this->form_validation->run()) {
                 $data = array(
-                        'product_name'          => $this->input->post('product_name'),
-                        'product_description'   => $this->input->post('product_description'),
-                        'product_price'         => $this->input->post('product_price'),
-
-                        // 'img'           => $upload['file_name'],
-                        // 'location'      => $upload['file_path'],
-
+                    'product_name'        => $this->input->post('product_name'),
+                    'product_description' => $this->input->post('product_description'),
+                    'product_price'       => $this->input->post('product_price')
                 );
-
-                $result = $this->Product_model->update($id, $data); // Call the update method
-
-                if($result)
-                {
-                    $this->session->set_flashdata('success','Employee Successfully Updated!');
+        
+                if (!empty($_FILES['img']['name'])) {
+                    $upload = $this->Product_model->upload();
+                    if (is_array($upload)) {
+                        $data['img'] = $upload['file_name'];
+                        $data['location'] = $upload['file_path'];
+                    } else {
+                        $this->session->set_flashdata('err', $upload);
+                        redirect(base_url('product/edit/' . $id));
+                        return;
+                    }
+                }
+                $result = $this->Product_model->update($id, $data);
+        
+                if ($result) {
+                    $this->session->set_flashdata('success', 'Product Successfully Updated!');
                     redirect(base_url('product/productlist'));
+                } else {
+                    $this->session->set_flashdata('err', 'Product Update Failed');
                 }
-                else
-                {
-                    $this->session->set_flashdata('err', 'Employee Update Failed');
-                }
+            } else {
+                $this->session->set_flashdata('err', validation_errors());
+                redirect(base_url('product/edit/' . $id));
             }
         }
         public function delete($id)
