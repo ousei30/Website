@@ -8,6 +8,9 @@
             $this->load->model('Login_model');
             $this->load->model('Upload_model');
             $this->load->model('Orders_model');
+            // if (!$this->session->userdata('username')) {
+            //     redirect(base_url('login/index')); // Redirect to login page
+            // }
         }
         public function profile()
         {
@@ -15,15 +18,16 @@
             if ($this->session->userdata('user_status') == 1) {
                 $this->load->view('template/header');
                 $this->load->view('template/nav');
-                $this->load->view('webpages/adminprofile',$data);
+                $this->load->view('webpages/adminprofile', $data);
                 $this->load->view('template/footer');
             } else {
                 $this->load->view('template/header');
                 $this->load->view('template/nav');
-                $this->load->view('webpages/profile',$data);
+                $this->load->view('webpages/profile', $data);
                 $this->load->view('template/footer');
             }
         }
+        
         public function home()
         {
             $this->load->view('template/header');
@@ -110,27 +114,37 @@
         }
         public function update()
         {
-            // Set validation rules
             $this->form_validation->set_rules('username', 'Employee Number', 'trim|required');
             $this->form_validation->set_rules('firstName', 'first name', 'trim|required');
             $this->form_validation->set_rules('lastName', 'last name', 'trim|required');
             $this->form_validation->set_rules('middleName', 'middle name', 'trim|required');
         
-            if ($this->form_validation->run()) {
-                
-                $id = $this->input->post('id');
+            $id = $this->input->post('id');
             
+            if ($this->form_validation->run()) {
                 $data = array(
                     'username'      => $this->input->post('username'),
                     'firstName'     => $this->input->post('firstName'),
                     'middleName'    => $this->input->post('middleName'),
                     'lastName'      => $this->input->post('lastName'),
                     'update'        => 'users',
-                    'date_updated'  => date('Y-m-d') // Update the date
+                    'date_updated'  => date('Y-m-d')
                 );
-            
+    
+                if (!empty($_FILES['img']['name'])) {
+                    $upload = $this->Upload_model->upload();
+                    if (is_array($upload)) {
+                        $data['img'] = $upload['file_name'];
+                        $data['location'] = $upload['file_path'];
+                    } else {
+                        $this->session->set_flashdata('err', $upload);
+                        redirect(base_url('users/edit/' . $id));
+                        return;
+                    }
+                }
+        
                 $result = $this->Users_model->update($id, $data);
-            
+        
                 if ($result) {
                     $this->session->set_flashdata('success', 'Employee Successfully Updated!');
                     redirect(base_url('users/index'));
@@ -139,9 +153,10 @@
                 }
             } else {
                 $this->session->set_flashdata('err', validation_errors());
-                redirect(base_url('users/edit/' . $this->input->post('id')));
+                redirect(base_url('users/edit/' . $id));
             }
         }
+        
 
         public function delete($id)
         {
